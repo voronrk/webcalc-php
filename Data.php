@@ -4,6 +4,7 @@ namespace Data;
 class getSuboperations {
     const suboperations = [
         [
+            'type' => 'preparation',
             'title' => 'Приладка 1 формы А3 формат CityLine',
             'machine' => 'CityLine',
             'complexityIndex' => '1',
@@ -13,6 +14,7 @@ class getSuboperations {
             'wasteNumber' => '',
         ],
         [
+            'type' => 'passing',
             'title' => 'Печать А3 с 2-х рулонов цветная CityLine',
             'machine' => 'CityLine',
             'complexityIndex' => '1',

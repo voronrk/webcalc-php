@@ -1,53 +1,29 @@
 <?php
 
 include('data.php');
+include ('Material.php');
+
 use Data\getJobTariffs;
 use Data\getWorkers;
 use Data\getSuboperations;
 use Data\getPaperRejectRoll;
+use Material\Material;
 
 function debug($data) {
     echo "<pre>";
     print_r($data);
     echo "</pre>";
-
 }
 
-/*
-*   Формат: А3
-*   Страниц: 16
-*   4+1 (1, 8, 9, 16)
-*   2283 экз.
-*/
+class Paper extends Material {
+    
+    public function __construct($title='', $type='', $mainUnit='', $price=0, $usageRate=1, $currency='RUR') {
+        parent::__construct($title='', $type='', $mainUnit='', $price=0, $usageRate=1, $currency='RUR');
 
-const NUMBERS = [7, 2283];
-
-class Material {
-
-    public $title;          // Название
-    public $type;           // Тип
-    public $main_unit;      // Единица измерения основная
-    public $price;          // Цена за единицу (основную)
-    public $usage_rate;     // Норма расхода
-    public $currency;       // Валюта цены
-
-    public $count;          // Количество
-
-    public function __construct($title='', $type='', $mainUnit='', $price=0, $usageRate=1, $currency='RUR')
-    {
-        $this->title = $title;
-        $this->type = $type;
-        $this->main_unit = $main_unit;
-        $this->price = $price;
-        $this->usage_rate = $usage_rate;
-        $this->currency = $currency;
-    }
-
-    private function unit_recalc($unit_from, $unit_to) {
 
     }
-
 }
+
 
 class Worker {
 
@@ -92,7 +68,7 @@ class Suboperation {
         }
     }
 
-    public function __construct($data, $workersData, $quantity=0, $jobTariffs)
+    public function __construct($data, $workersData, $jobTariffs, $quantity=0)
     {
         $this->title = $data['title'];
         $this->machine = $data['machine'];
@@ -114,7 +90,7 @@ class Suboperation {
     }
 }
 
-class Product {
+class HalfProduct_DEPRECATED {
 
     public $suboperations;
     public $materials;
@@ -137,21 +113,138 @@ class Product {
 
 }
 
-$jobTariffs = getJobTariffs::index();
+class Layout {
 
-$workersData = getWorkers::index();
+    public $printSides;
+    public $rollsQuantity;
+    public $pagesPerSide;
+    public $pagesPerSheet;
+    public $pagesQuantity;
+    public $inksOnPages;
+    public $inkMap;
+    public $formsQuantity;    
 
-$suboperationsData = getSuboperations::index();
+    const PAGES_PER_SIDE = [
+        'A4' => 8,
+        'A3' => 4,
+        'A2' => 2
+    ];
 
-$suboperations = [];
-foreach($suboperationsData as $key=>$suboperationData) {
-    $suboperations[]=new Suboperation($suboperationData, $workersData, NUMBERS[$key], $jobTariffs);
+    const PAGES_PER_SHEET = [
+        'A4' => 16,
+        'A3' => 8,
+        'A2' => 4
+    ];
+
+    private function calculateRollsQuantity() {
+        return $this->pagesQuantity / $this->pagesPerSheet;
+    }
+
+    private function calculatePrintSides() {
+        return ceil($this->rollsQuantity) * 2;
+    }
+
+    private function calculateBlockSize() {
+        return $this->pagesQuantity / ($this->pagesPerSide/2);
+    }
+
+    private function getCurrentBlockNumber($pageNumber) {
+        return ceil($pageNumber / $this->calculateBlockSize());
+    }
+
+    private function calculateNumberOfPageInBlock($pageNumber) {
+        return $pageNumber - ($this->calculateBlockSize() * ($this->getCurrentBlockNumber($pageNumber)-1));
+    }
+
+    private function getSideOfPage($pageNumber) {
+        return $pageNumber <= 2*floor($this->rollsQuantity) ? $pageNumber : $this->calculateBlockSize() - $pageNumber + 1;
+    }
+
+    private function generateInkMap() {
+        foreach($this->inksOnPages as $key=>$ink) {
+            $page = $key+1;
+            $side = $this->getSideOfPage($this->calculateNumberOfPageInBlock($page));
+            $this->inkMap[$side] = $ink > $this->inkMap[$side] ? $ink : $this->inkMap[$side];
+        }
+    }
+
+    private function calculateFormQuantity() {
+        $formsQuantity = 0;
+        foreach($this->inkMap as $quantity) {
+            $formsQuantity += $quantity;
+        };
+        return $formsQuantity;
+    }
+
+    public function __construct($pagesQuantity, $sizeOfPage, $inksOnPages) {
+        $this->pagesQuantity = $pagesQuantity; 
+        $this->inksOnPages = $inksOnPages;
+        $this->pagesPerSide = self::PAGES_PER_SIDE[$sizeOfPage];
+        $this->pagesPerSheet = self::PAGES_PER_SHEET[$sizeOfPage];
+        $this->rollsQuantity = $this->calculateRollsQuantity();
+        $this->printSides = $this->calculatePrintSides();
+        $this->generateInkMap();
+        $this->formsQuantity = $this->calculateFormQuantity();
+    }
 }
-// debug($suboperations);
 
-debug(getPaperRejectRoll::index(2, 2283, '2+1'));
-// debug(getPaperRejectRoll::index(2, 120000, '2+1'));
+class HalfProduct {
 
-// $operation = new Product($quantity, $suboperations=[], $materials);
+    public $pagesQuantity;
+    public $sizeOfPage;
+    public $inksOnPages;
+    public $paper;
+    public $quantity;
+
+    private function calculateQuantity($type) {
+        if ($type == 'preparation') {
+            return 7;
+        };
+        if ($type == 'passing') {
+            return $this->quantity;
+        };
+        return false;
+    }
+
+    public function __construct($config, $quantity=0, $pagesQuantity=0, $sizeOfPage='', $inksOnPages=[], $paper='') {
+
+        $this->pagesQuantity = $pagesQuantity;
+        $this->sizeOfPage = $sizeOfPage;
+        $this->inksOnPages = $inksOnPages;
+        $this->paper = $paper;
+        $this->quantity = $quantity;
+
+        $this->layout = new Layout($this->pagesQuantity, $this->sizeOfPage, $this->inksOnPages);
+
+        $workersData = getWorkers::index($config);
+        $suboperationsData = getSuboperations::index($config);
+
+        foreach($suboperationsData as $key=>$suboperationData) {
+            $this->suboperations[]=new Suboperation($suboperationData, $workersData, getJobTariffs::index(), $this->calculateQuantity($suboperationData['type']));
+        }
+    }
+}
+
+const NUMBERS = [7, 2283];
+const QUANTITY = 2283;
+// const PAGES = 12;
+const SIZE = 'A3';
+const INK = '4+1';
+
+$config = "Newspaper Block";
+$inkOnPages = [2,1,1,1,1,1,1,2,2,1,1,1,1,1,1,2];
+// $inkOnPages = [4,1,1,1,1,1,1,4,4,1,1,1,1,1,1,4,1,1,1,1,1,1,1,1];
+// $inkOnPages = [4,1,1,1,1,1,1,1,1,1,1,4];
+$paper = new Paper();
+
+$newspaperBlock = new HalfProduct($config, QUANTITY, count($inkOnPages), SIZE, $inkOnPages, $paper);
+debug($newspaperBlock);
+
+
+
+
+
+// debug(getPaperRejectRoll::index(2, QUANTITY, INK));
+
 
 ?>
