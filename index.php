@@ -16,11 +16,35 @@ function debug($data) {
 }
 
 class Paper extends Material {
-    
-    public function __construct($title='', $type='', $mainUnit='', $price=0, $usageRate=1, $currency='RUR') {
-        parent::__construct($title='', $type='', $mainUnit='', $price=0, $usageRate=1, $currency='RUR');
 
+    public $rollWidth;
+    public $basicWeight;
+    public $rejectNorma;
+    public $rollsQuantity;
 
+    public $weight;
+
+    const CUT_LENGTH = 57.8;
+
+    public function calculateTotalCost() {
+        return $this->weight * $this->price;
+    }
+
+    public function calculatePaperWeight() {
+        $S = $this->rollsQuantity * $this->quantity * self::CUT_LENGTH * $this->rollWidth / 10000; // square meter
+        $m = $S * $this->basicWeight / 1000; //kg
+        return $m * (1 + $this->rejectNorma / 100);
+    }
+
+    public function __construct($data, $rollsQuantity, $quantity, $inks) {
+        parent::__construct($data['title'], $data['type'], $data['mainUnit'], $data['price'], $data['usageRate'], $data['currency']);
+        $this->rollWidth = $data['rollWidth'];
+        $this->rollsQuantity = $rollsQuantity;
+        $this->basicWeight = $data['basicWeight'];
+        $this->quantity = $quantity;
+        $this->rejectNorma = getPaperRejectRoll::index($rollsQuantity, $quantity, $inks);
+        $this->weight = $this->calculatePaperWeight();
+        $this->totalCost = $this->calculateTotalCost();
     }
 }
 
@@ -122,7 +146,9 @@ class Layout {
     public $pagesQuantity;
     public $inksOnPages;
     public $inkMap;
-    public $formsQuantity;    
+    public $layoutInkMap;
+    public $formsQuantity;
+     
 
     const PAGES_PER_SIDE = [
         'A4' => 8,
@@ -160,12 +186,25 @@ class Layout {
         return $pageNumber <= 2*floor($this->rollsQuantity) ? $pageNumber : $this->calculateBlockSize() - $pageNumber + 1;
     }
 
+    private function generateLayoutInkMap() {
+        $inks = ['','','1+1','2+1','2+2','4+1','4+2','','4+4'];
+        $sumOfInks = 0;
+        for ($i=1;$i<count($this->inkMap);$i=$i+2) {
+            $temp = $this->inkMap[$i]+$this->inkMap[$i+1];
+            if ($sumOfInks<$temp) {
+                $sumOfInks = $temp;
+            };
+        };
+        $this->layoutInkMap = $inks[$sumOfInks];
+    }
+
     private function generateInkMap() {
         foreach($this->inksOnPages as $key=>$ink) {
             $page = $key+1;
             $side = $this->getSideOfPage($this->calculateNumberOfPageInBlock($page));
             $this->inkMap[$side] = $ink > $this->inkMap[$side] ? $ink : $this->inkMap[$side];
         }
+        $this->generateLayoutInkMap();
     }
 
     private function calculateFormQuantity() {
@@ -195,10 +234,11 @@ class HalfProduct {
     public $inksOnPages;
     public $paper;
     public $quantity;
+    public $formsQuantity;
 
     private function calculateQuantity($type) {
         if ($type == 'preparation') {
-            return 7;
+            return $this->formsQuantity;
         };
         if ($type == 'passing') {
             return $this->quantity;
@@ -211,10 +251,12 @@ class HalfProduct {
         $this->pagesQuantity = $pagesQuantity;
         $this->sizeOfPage = $sizeOfPage;
         $this->inksOnPages = $inksOnPages;
-        $this->paper = $paper;
         $this->quantity = $quantity;
 
         $this->layout = new Layout($this->pagesQuantity, $this->sizeOfPage, $this->inksOnPages);
+        $this->formsQuantity = $this->layout->formsQuantity;
+
+        $this->paper = new Paper($paper, $this->layout->rollsQuantity, $this->quantity, $this->layout->layoutInkMap);
 
         $workersData = getWorkers::index($config);
         $suboperationsData = getSuboperations::index($config);
@@ -225,19 +267,31 @@ class HalfProduct {
     }
 }
 
-const NUMBERS = [7, 2283];
+// const QUANTITY = 25000;
 const QUANTITY = 2283;
-// const PAGES = 12;
+// const QUANTITY = 2500;
 const SIZE = 'A3';
-const INK = '4+1';
+const ROLL_WIDTH = 76;
+
+const PAPER_DATA = [
+    'title' => 'Газетная',
+    'type' => 'газетная',
+    'basicWeight' => 42,
+    'mainUnit' => 'кг',
+    'price' => 32.25,
+    'usageRate' => 1,
+    'currency' => 'RUR',
+    'rollWidth' => ROLL_WIDTH
+];
 
 $config = "Newspaper Block";
-$inkOnPages = [2,1,1,1,1,1,1,2,2,1,1,1,1,1,1,2];
-// $inkOnPages = [4,1,1,1,1,1,1,4,4,1,1,1,1,1,1,4,1,1,1,1,1,1,1,1];
-// $inkOnPages = [4,1,1,1,1,1,1,1,1,1,1,4];
-$paper = new Paper();
+// $inkOnPages = [1,1,1,1,1,1,1,1];                                        // 8
+$inkOnPages = [4,1,1,1,1,1,1,4,4,1,1,1,1,1,1,4];                     // 16
+// $inkOnPages = [4,1,1,1,1,1,1,4,4,1,1,1,1,1,1,4,1,1,1,1,1,1,1,1];     // 24
+// $inkOnPages = [4,1,1,1,1,1,1,1,1,1,1,4];                             // 12
+// $paper = new Paper(PAPER_DATA);
 
-$newspaperBlock = new HalfProduct($config, QUANTITY, count($inkOnPages), SIZE, $inkOnPages, $paper);
+$newspaperBlock = new HalfProduct($config, QUANTITY, count($inkOnPages), SIZE, $inkOnPages, PAPER_DATA);
 debug($newspaperBlock);
 
 

@@ -129,6 +129,17 @@ class getInkRollNorma {
 };
 
 //Нормы техотходов бумаги для ролевой печати (на тираж, включая приладку, прогоны, срыв и т.п.)
+/*
+*   CSV structure:
+*   0 - rolls quantity
+*   1 - quantity
+*   2 - reject persents for 1+1
+*   3 - reject persents for 2+1
+*   4 - reject persents for 2+2
+*   5 - reject persents for 4+1
+*   6 - reject persents for 4+2
+*   7 - reject persents for 4+4
+*/
 class getPaperRejectRoll {
     static $norma = [];
 
@@ -141,13 +152,12 @@ class getPaperRejectRoll {
     private static $previousRejectNorma = 0;
     private static $nextRejectNorma = 0;
 
-
     static $rejectNorma;
 
     const inks = ['','','1+1','2+1','2+2','4+1','4+2','4+4'];
 
     private static function calculateRejectNorma() {
-        self::$rejectNorma = self::$nextRejectNorma + (self::$previousRejectNorma - self::$nextRejectNorma) * ((self::$referenceQuantity - self::$previousQuantity)/(self::$nextQuantity - self::$previousQuantity));
+        self::$rejectNorma = self::$previousRejectNorma - (self::$previousRejectNorma - self::$nextRejectNorma) * ((self::$referenceQuantity - self::$previousQuantity)/(self::$nextQuantity - self::$previousQuantity));
     }
 
     private static function parseItem($item) {
@@ -163,6 +173,9 @@ class getPaperRejectRoll {
             if (($arItem[0] == self::$referenceRolls) && (self::inks[$i] == self::$referenceInks)){
                 if ($arItem[1] == self::$referenceQuantity) {
                     self::$rejectNorma = $arItem[$i];
+                    self::$previousQuantity = $arItem[1];
+                    self::$nextQuantity = $arItem[1];
+                    return;
                 };
                 if ($arItem[1]<self::$referenceQuantity) {
                     self::$previousQuantity = $arItem[1];
@@ -189,10 +202,14 @@ class getPaperRejectRoll {
 
     public static function index($rolls, $quantity, $inks) {
         self::$referenceRolls = $rolls;
-        self::$referenceQuantity = $quantity;
+        self::$referenceQuantity = $quantity * ceil($rolls);
+        // self::$referenceQuantity = $quantity;
         self::$referenceInks = $inks;
 
+        debug(self::$referenceQuantity);
+
         self::readBase();
-        return [self::$rejectNorma, self::$previousQuantity, self::$nextQuantity];
+        // return [self::$rejectNorma, self::$previousQuantity, self::$nextQuantity];
+        return self::$rejectNorma;
     }
 };
