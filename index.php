@@ -264,6 +264,8 @@ class HalfProduct {
         ];
         $this->paper = new Paper($paperBaseParams, $paperExtendParams);
 
+
+
         $workersData = getWorkers::index($config);
         $suboperationsData = getSuboperations::index($config);
 
@@ -283,16 +285,47 @@ const PAPER_DATA = [
     'group' => 'БУМАГА',
     'title' => 'Газетная',
     'type' => 'газетная',
-    'basicWeight' => 42,
     'mainUnit' => 'кг',
     'price' => 32.25,
     'usageRate' => 1,
+    'basicWeight' => 42,
     'currency' => 'RUR',
     'rollWidth' => ROLL_WIDTH
 ];
 
 const INK_DATA = [
-
+    [
+        'group' => 'КРАСКА',
+        'title' => 'Краска ролевая чёрная',
+        'type' => 'ролевая',
+        'mainUnit' => 'кг',
+        'price' => 2.32,
+        'currency' => 'EUR',
+    ],
+    [
+        'group' => 'КРАСКА',
+        'title' => 'Краска ролевая голубая',
+        'type' => 'ролевая',
+        'mainUnit' => 'кг',
+        'price' => 2.32,
+        'currency' => 'EUR',
+    ],
+    [
+        'group' => 'КРАСКА',
+        'title' => 'Краска ролевая желтая',
+        'type' => 'ролевая',
+        'mainUnit' => 'кг',
+        'price' => 2.32,
+        'currency' => 'EUR',
+    ],
+    [
+        'group' => 'КРАСКА',
+        'title' => 'Краска ролевая пурпурная',
+        'type' => 'ролевая',
+        'mainUnit' => 'кг',
+        'price' => 2.32,
+        'currency' => 'EUR',
+    ],
 ];
 
 $configName = "Newspaper Block";

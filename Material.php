@@ -24,8 +24,21 @@ class Material {
 
     public $quantity;       // Количество
 
+    public function getCurrencyCourse($currencyName) {
+        $currencyCourse = [
+            'RUR' => 1,
+            'USD' => 120,
+            'EUR' => 130
+        ];
+        return $currencyCourse[$currencyName];
+    }
+
     public function calculateTotalCost() {
         return $this->price * $this->quantity;
+    }
+
+    public function calculatePriceRUR($price) {
+        return $price * $this->getCurrencyCourse($this->currency);
     }
 
     public function __construct($baseParams)
@@ -34,9 +47,9 @@ class Material {
         $this->title = $baseParams['title'];
         $this->type = $baseParams['type'];
         $this->mainUnit = $baseParams['mainUnit'];
-        $this->price = $baseParams['price'];
-        $this->usageRate = $baseParams['usageRate'];
         $this->currency = $baseParams['currency'];
+        $this->price = $this->calculatePriceRUR($baseParams['price']);
+        $this->usageRate = $baseParams['usageRate'];
     }
 }
 
