@@ -22,29 +22,30 @@ class Paper extends Material {
     public $rejectNorma;
     public $rollsQuantity;
 
-    public $weight;
-
     const CUT_LENGTH = 57.8;
 
-    public function calculateTotalCost() {
-        return $this->weight * $this->price;
-    }
-
     public function calculatePaperWeight() {
-        $S = $this->rollsQuantity * $this->quantity * self::CUT_LENGTH * $this->rollWidth / 10000; // square meter
+        $S = $this->rollsQuantity * $this->quantityOfItems * self::CUT_LENGTH * $this->rollWidth / 10000; // square meter
         $m = $S * $this->basicWeight / 1000; //kg
         return $m * (1 + $this->rejectNorma / 100);
     }
 
-    public function __construct($data, $rollsQuantity, $quantity, $inks) {
-        parent::__construct($data['title'], $data['type'], $data['mainUnit'], $data['price'], $data['usageRate'], $data['currency']);
-        $this->rollWidth = $data['rollWidth'];
-        $this->rollsQuantity = $rollsQuantity;
-        $this->basicWeight = $data['basicWeight'];
-        $this->quantity = $quantity;
-        $this->rejectNorma = getPaperRejectRoll::index($rollsQuantity, $quantity, $inks);
-        $this->weight = $this->calculatePaperWeight();
+    public function __construct($baseParams, $extendParams) {
+        parent::__construct($baseParams);
+        $this->rollWidth = $baseParams['rollWidth'];
+        $this->basicWeight = $baseParams['basicWeight'];
+        $this->rollsQuantity = $extendParams['rollsQuantity'];
+        $this->quantityOfItems = $extendParams['quantityOfItem'];
+        $this->rejectNorma = getPaperRejectRoll::index($this->rollsQuantity, $this->quantityOfItems, $extendParams['layoutInkMap']);
+        $this->quantity = $this->calculatePaperWeight();
         $this->totalCost = $this->calculateTotalCost();
+    }
+}
+
+class Ink extends Material {
+    
+    public function __construct($baseParams, $extendParams) {
+        parent::__construct($baseParams);
     }
 }
 
@@ -246,17 +247,22 @@ class HalfProduct {
         return false;
     }
 
-    public function __construct($config, $quantity=0, $pagesQuantity=0, $sizeOfPage='', $inksOnPages=[], $paper='') {
+    public function __construct($params, $paperBaseParams='') {
 
-        $this->pagesQuantity = $pagesQuantity;
-        $this->sizeOfPage = $sizeOfPage;
-        $this->inksOnPages = $inksOnPages;
-        $this->quantity = $quantity;
+        $this->sizeOfPage = $params['sizeOfPage'];
+        $this->inksOnPages = $params['inksOnPages'];
+        $this->pagesQuantity = count($this->inksOnPages);
+        $this->quantity = $params['quantity'];
 
         $this->layout = new Layout($this->pagesQuantity, $this->sizeOfPage, $this->inksOnPages);
         $this->formsQuantity = $this->layout->formsQuantity;
 
-        $this->paper = new Paper($paper, $this->layout->rollsQuantity, $this->quantity, $this->layout->layoutInkMap);
+        $paperExtendParams = [
+            'rollsQuantity' => $this->layout->rollsQuantity,
+            'quantityOfItem' => $this->quantity,
+            'layoutInkMap' => $this->layout->layoutInkMap
+        ];
+        $this->paper = new Paper($paperBaseParams, $paperExtendParams);
 
         $workersData = getWorkers::index($config);
         $suboperationsData = getSuboperations::index($config);
@@ -274,6 +280,7 @@ const SIZE = 'A3';
 const ROLL_WIDTH = 76;
 
 const PAPER_DATA = [
+    'group' => 'БУМАГА',
     'title' => 'Газетная',
     'type' => 'газетная',
     'basicWeight' => 42,
@@ -284,14 +291,24 @@ const PAPER_DATA = [
     'rollWidth' => ROLL_WIDTH
 ];
 
-$config = "Newspaper Block";
+const INK_DATA = [
+
+];
+
+$configName = "Newspaper Block";
 // $inkOnPages = [1,1,1,1,1,1,1,1];                                        // 8
-$inkOnPages = [4,1,1,1,1,1,1,4,4,1,1,1,1,1,1,4];                     // 16
+$inksOnPages = [4,1,1,1,1,1,1,4,4,1,1,1,1,1,1,4];                     // 16
 // $inkOnPages = [4,1,1,1,1,1,1,4,4,1,1,1,1,1,1,4,1,1,1,1,1,1,1,1];     // 24
 // $inkOnPages = [4,1,1,1,1,1,1,1,1,1,1,4];                             // 12
-// $paper = new Paper(PAPER_DATA);
 
-$newspaperBlock = new HalfProduct($config, QUANTITY, count($inkOnPages), SIZE, $inkOnPages, PAPER_DATA);
+$halfProductParams = [
+    'configName' => $configName,
+    'quantity' => QUANTITY,
+    'sizeOfPage' => SIZE,
+    'inksOnPages' => $inksOnPages,
+];
+
+$newspaperBlock = new HalfProduct($halfProductParams, PAPER_DATA);
 debug($newspaperBlock);
 
 

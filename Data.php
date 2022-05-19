@@ -128,8 +128,8 @@ class getInkRollNorma {
     }
 };
 
-//Нормы техотходов бумаги для ролевой печати (на тираж, включая приладку, прогоны, срыв и т.п.)
-/*
+class getPaperRejectRoll {
+/**  Нормы техотходов бумаги для ролевой печати (на тираж, включая приладку, прогоны, срыв и т.п.)
 *   CSV structure:
 *   0 - rolls quantity
 *   1 - quantity
@@ -140,7 +140,6 @@ class getInkRollNorma {
 *   6 - reject persents for 4+2
 *   7 - reject persents for 4+4
 */
-class getPaperRejectRoll {
     static $norma = [];
 
     private static $referenceRolls;
@@ -203,13 +202,10 @@ class getPaperRejectRoll {
     public static function index($rolls, $quantity, $inks) {
         self::$referenceRolls = $rolls;
         self::$referenceQuantity = $quantity * ceil($rolls);
-        // self::$referenceQuantity = $quantity;
         self::$referenceInks = $inks;
 
-        debug(self::$referenceQuantity);
-
         self::readBase();
-        // return [self::$rejectNorma, self::$previousQuantity, self::$nextQuantity];
+
         return self::$rejectNorma;
     }
 };
