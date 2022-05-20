@@ -3,7 +3,7 @@ namespace Material;
 
 class Material {
     /**
-     * baseParams   Массив параметров
+     * params   Массив параметров
      * 
      * group            Группа материалов (бумага, краска и пр.)
      * title            Название
@@ -18,11 +18,12 @@ class Material {
     public $title;          // Название
     public $type;           // Тип
     public $mainUnit;       // Единица измерения основная
-    public $price;          // Цена за единицу (основную)
+    public $price;          // Цена за основную единицу
     public $usageRate;      // Норма расхода
     public $currency;       // Валюта цены
 
     public $quantity;       // Количество
+    public $priceRUR;       // Цена (руб.)ж
 
     public function getCurrencyCourse($currencyName) {
         $currencyCourse = [
@@ -34,22 +35,23 @@ class Material {
     }
 
     public function calculateTotalCost() {
-        return $this->price * $this->quantity;
+        return $this->priceRUR * $this->quantity;
     }
 
-    public function calculatePriceRUR($price) {
-        return $price * $this->getCurrencyCourse($this->currency);
+    public function calculatePriceRUR() {
+        return $this->price * $this->getCurrencyCourse($this->currency);
     }
 
-    public function __construct($baseParams)
+    public function __construct($params)
     {
-        $this->group = $baseParams['group'];
-        $this->title = $baseParams['title'];
-        $this->type = $baseParams['type'];
-        $this->mainUnit = $baseParams['mainUnit'];
-        $this->currency = $baseParams['currency'];
-        $this->price = $this->calculatePriceRUR($baseParams['price']);
-        $this->usageRate = $baseParams['usageRate'];
+        $this->group = $params['group'];
+        $this->title = $params['title'];
+        $this->type = $params['type'];
+        $this->mainUnit = $params['mainUnit'];
+        $this->currency = $params['currency'];
+        $this->price = $params['price'];
+        $this->priceRUR = $this->calculatePriceRUR();
+        $this->usageRate = $params['usageRate'];
     }
 }
 

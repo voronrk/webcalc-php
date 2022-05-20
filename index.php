@@ -7,6 +7,7 @@ use Data\getJobTariffs;
 use Data\getWorkers;
 use Data\getSuboperations;
 use Data\getPaperRejectRoll;
+use Data\getInks;
 use Material\Material;
 
 function debug($data) {
@@ -30,13 +31,13 @@ class Paper extends Material {
         return $m * (1 + $this->rejectNorma / 100);
     }
 
-    public function __construct($baseParams, $extendParams) {
-        parent::__construct($baseParams);
-        $this->rollWidth = $baseParams['rollWidth'];
-        $this->basicWeight = $baseParams['basicWeight'];
-        $this->rollsQuantity = $extendParams['rollsQuantity'];
-        $this->quantityOfItems = $extendParams['quantityOfItem'];
-        $this->rejectNorma = getPaperRejectRoll::index($this->rollsQuantity, $this->quantityOfItems, $extendParams['layoutInkMap']);
+    public function __construct($params) {
+        parent::__construct($params);
+        $this->rollWidth = $params['rollWidth'];
+        $this->basicWeight = $params['basicWeight'];
+        $this->rollsQuantity = $params['rollsQuantity'];
+        $this->quantityOfItems = $params['quantityOfItem'];
+        $this->rejectNorma = getPaperRejectRoll::index($this->rollsQuantity, $this->quantityOfItems, $params['layoutInkMap']);
         $this->quantity = $this->calculatePaperWeight();
         $this->totalCost = $this->calculateTotalCost();
     }
@@ -44,8 +45,8 @@ class Paper extends Material {
 
 class Ink extends Material {
     
-    public function __construct($baseParams, $extendParams) {
-        parent::__construct($baseParams);
+    public function __construct($params) {
+        parent::__construct($params);
     }
 }
 
@@ -191,7 +192,7 @@ class Layout {
         $inks = ['','','1+1','2+1','2+2','4+1','4+2','','4+4'];
         $sumOfInks = 0;
         for ($i=1;$i<count($this->inkMap);$i=$i+2) {
-            $temp = $this->inkMap[$i]+$this->inkMap[$i+1];
+            $temp = count($this->inkMap[$i])+count($this->inkMap[$i+1]);
             if ($sumOfInks<$temp) {
                 $sumOfInks = $temp;
             };
@@ -203,7 +204,8 @@ class Layout {
         foreach($this->inksOnPages as $key=>$ink) {
             $page = $key+1;
             $side = $this->getSideOfPage($this->calculateNumberOfPageInBlock($page));
-            $this->inkMap[$side] = $ink > $this->inkMap[$side] ? $ink : $this->inkMap[$side];
+            $this->inkMap[$side] = (($this->inkMap[$side]=='') || count($ink) > count($this->inkMap[$side])) ? $ink : $this->inkMap[$side];
+            // $this->inkMap[$side] = count($ink) > $this->inkMap[$side] ? count($ink) : $this->inkMap[$side];
         }
         $this->generateLayoutInkMap();
     }
@@ -211,7 +213,7 @@ class Layout {
     private function calculateFormQuantity() {
         $formsQuantity = 0;
         foreach($this->inkMap as $quantity) {
-            $formsQuantity += $quantity;
+            $formsQuantity += count($quantity);
         };
         return $formsQuantity;
     }
@@ -247,7 +249,7 @@ class HalfProduct {
         return false;
     }
 
-    public function __construct($params, $paperBaseParams='') {
+    public function __construct($params, $paperParams, $inkGroup) {
 
         $this->sizeOfPage = $params['sizeOfPage'];
         $this->inksOnPages = $params['inksOnPages'];
@@ -257,14 +259,12 @@ class HalfProduct {
         $this->layout = new Layout($this->pagesQuantity, $this->sizeOfPage, $this->inksOnPages);
         $this->formsQuantity = $this->layout->formsQuantity;
 
-        $paperExtendParams = [
+        $paperParams = array_merge($paperParams, [
             'rollsQuantity' => $this->layout->rollsQuantity,
             'quantityOfItem' => $this->quantity,
             'layoutInkMap' => $this->layout->layoutInkMap
-        ];
-        $this->paper = new Paper($paperBaseParams, $paperExtendParams);
-
-
+        ]);
+        $this->paper = new Paper($paperParams);
 
         $workersData = getWorkers::index($config);
         $suboperationsData = getSuboperations::index($config);
@@ -299,7 +299,7 @@ const INK_DATA = [
         'title' => 'Краска ролевая чёрная',
         'type' => 'ролевая',
         'mainUnit' => 'кг',
-        'price' => 2.32,
+        'price' => 1.62,
         'currency' => 'EUR',
     ],
     [
@@ -330,9 +330,28 @@ const INK_DATA = [
 
 $configName = "Newspaper Block";
 // $inkOnPages = [1,1,1,1,1,1,1,1];                                        // 8
-$inksOnPages = [4,1,1,1,1,1,1,4,4,1,1,1,1,1,1,4];                     // 16
+// $inksOnPages = [4,1,1,1,1,1,1,4,4,1,1,1,1,1,1,4];                     // 16
 // $inkOnPages = [4,1,1,1,1,1,1,4,4,1,1,1,1,1,1,4,1,1,1,1,1,1,1,1];     // 24
 // $inkOnPages = [4,1,1,1,1,1,1,1,1,1,1,4];                             // 12
+
+$inksOnPages = [
+    [1,2,3,4],
+    [1],
+    [1],
+    [1],
+    [1],
+    [1],
+    [1],
+    [1,2,3,4],
+    [1,2,3,4],
+    [1],
+    [1],
+    [1],
+    [1],
+    [1],
+    [1],
+    [1,2,3,4],
+];
 
 $halfProductParams = [
     'configName' => $configName,
@@ -341,14 +360,9 @@ $halfProductParams = [
     'inksOnPages' => $inksOnPages,
 ];
 
-$newspaperBlock = new HalfProduct($halfProductParams, PAPER_DATA);
+$inkGroup = 4;
+
+$newspaperBlock = new HalfProduct($halfProductParams, PAPER_DATA, $inkGroup);
 debug($newspaperBlock);
-
-
-
-
-
-// debug(getPaperRejectRoll::index(2, QUANTITY, INK));
-
 
 ?>

@@ -1,6 +1,55 @@
 <?php
 namespace Data;
 
+class getInks {
+    const inks = [
+        [
+            'id' => 1,
+            'group' => 'КРАСКА',
+            'title' => 'Краска ролевая чёрная',
+            'type' => 'ролевая',
+            'mainUnit' => 'кг',
+            'price' => 1.62,
+            'currency' => 'EUR',
+        ],
+        [
+            'id' => 2,
+            'group' => 'КРАСКА',
+            'title' => 'Краска ролевая голубая',
+            'type' => 'ролевая',
+            'mainUnit' => 'кг',
+            'price' => 2.32,
+            'currency' => 'EUR',
+        ],
+        [
+            'id' => 3,
+            'group' => 'КРАСКА',
+            'title' => 'Краска ролевая желтая',
+            'type' => 'ролевая',
+            'mainUnit' => 'кг',
+            'price' => 2.32,
+            'currency' => 'EUR',
+        ],
+        [
+            'id' => 4,
+            'group' => 'КРАСКА',
+            'title' => 'Краска ролевая пурпурная',
+            'type' => 'ролевая',
+            'mainUnit' => 'кг',
+            'price' => 2.32,
+            'currency' => 'EUR',
+        ],
+    ];
+
+    public static function get($id) {
+        return current(array_filter(self::inks, function($item) use ($id) {return $item['id']==$id;}));
+    }
+
+    public static function getAll() {
+        return self::inks;
+    }
+}
+
 class getSuboperations {
     const suboperations = [
         [
