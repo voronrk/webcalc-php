@@ -25,10 +25,20 @@ class Paper extends Material {
 
     const CUT_LENGTH = 57.8;
 
-    public function calculatePaperWeight() {
-        $S = $this->rollsQuantity * $this->quantityOfItems * self::CUT_LENGTH * $this->rollWidth / 10000; // square meter
-        $m = $S * $this->basicWeight / 1000; //kg
-        return $m * (1 + $this->rejectNorma / 100);
+    public function calculateSheetSquare() {
+        return self::CUT_LENGTH * $this->rollWidth / 10000; // square meter
+    }
+
+    public function calculateTotalSquare() {
+        return $this->rollsQuantity * $this->quantityOfItems * $this->calculateSheetSquare(); // square meter
+    }
+
+    public function calculateWeight() {
+        return $this->calculateTotalSquare() * $this->basicWeight / 1000; //kg
+    }
+
+    public function calculateTotalPaperWeight() {
+        return $this->calculateWeight() * (1 + $this->rejectNorma / 100);
     }
 
     public function __construct($params) {
@@ -38,12 +48,16 @@ class Paper extends Material {
         $this->rollsQuantity = $params['rollsQuantity'];
         $this->quantityOfItems = $params['quantityOfItem'];
         $this->rejectNorma = getPaperRejectRoll::index($this->rollsQuantity, $this->quantityOfItems, $params['layoutInkMap']);
-        $this->quantity = $this->calculatePaperWeight();
+        $this->quantity = $this->calculateTotalPaperWeight();
         $this->totalCost = $this->calculateTotalCost();
     }
 }
 
 class Ink extends Material {
+
+    public function calculateQuantity() {
+        
+    }
     
     public function __construct($params) {
         parent::__construct($params);
@@ -200,12 +214,22 @@ class Layout {
         $this->layoutInkMap = $inks[$sumOfInks];
     }
 
+    private function addInkToSide($inkID, $side) {
+        if ($this->inkMap[$side]=='') {
+            $this->inkMap[$side] = [];
+        };
+        if (!in_array($inkID, $this->inkMap[$side])) {
+            $this->inkMap[$side] = array_merge($this->inkMap[$side], [$inkID]);
+        };
+    }
+
     private function generateInkMap() {
-        foreach($this->inksOnPages as $key=>$ink) {
+        foreach($this->inksOnPages as $key=>$inks) {
             $page = $key+1;
             $side = $this->getSideOfPage($this->calculateNumberOfPageInBlock($page));
-            $this->inkMap[$side] = (($this->inkMap[$side]=='') || count($ink) > count($this->inkMap[$side])) ? $ink : $this->inkMap[$side];
-            // $this->inkMap[$side] = count($ink) > $this->inkMap[$side] ? count($ink) : $this->inkMap[$side];
+            foreach($inks as $inkID) {
+                $this->addInkToSide($inkID, $side);
+            };            
         }
         $this->generateLayoutInkMap();
     }
@@ -234,10 +258,10 @@ class HalfProduct {
 
     public $pagesQuantity;
     public $sizeOfPage;
-    public $inksOnPages;
     public $paper;
     public $quantity;
     public $formsQuantity;
+    public $inks;
 
     private function calculateQuantity($type) {
         if ($type == 'preparation') {
@@ -252,11 +276,10 @@ class HalfProduct {
     public function __construct($params, $paperParams, $inkGroup) {
 
         $this->sizeOfPage = $params['sizeOfPage'];
-        $this->inksOnPages = $params['inksOnPages'];
-        $this->pagesQuantity = count($this->inksOnPages);
+        $this->pagesQuantity = count($params['inksOnPages']);
         $this->quantity = $params['quantity'];
 
-        $this->layout = new Layout($this->pagesQuantity, $this->sizeOfPage, $this->inksOnPages);
+        $this->layout = new Layout($this->pagesQuantity, $this->sizeOfPage, $params['inksOnPages']);
         $this->formsQuantity = $this->layout->formsQuantity;
 
         $paperParams = array_merge($paperParams, [
@@ -265,6 +288,12 @@ class HalfProduct {
             'layoutInkMap' => $this->layout->layoutInkMap
         ]);
         $this->paper = new Paper($paperParams);
+
+        foreach($this->layout->inkMap as $sideInk) {
+            foreach($sideInk as $inkID) {
+                $this->inks[] = new Ink(getInks::get($inkID));
+            }
+        }
 
         $workersData = getWorkers::index($config);
         $suboperationsData = getSuboperations::index($config);
@@ -352,6 +381,24 @@ $inksOnPages = [
     [1],
     [1,2,3,4],
 ];
+// $inksOnPages = [
+//     [1,2,3,4],
+//     [1],
+//     [1],
+//     [1],
+//     [1],
+//     [1],
+//     [1],
+//     [1,2,3,4],
+//     [1,2,3,4],
+//     [1],
+//     [1],
+//     [1],
+//     [1],
+//     [1],
+//     [1],
+//     [1,2,3,4],
+// ];
 
 $halfProductParams = [
     'configName' => $configName,
