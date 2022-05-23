@@ -56,16 +56,24 @@ class Paper extends Material {
 
 class Ink extends Material {
 
-    public function calculateQuantity() {
-        $this->quantity = 5;
+    public $totalSum;
+
+    public function calculateQuantity($S) {
+        $this->quantity = $S * $this->usageRate;
+    }
+
+    public function calculateTotalSum() {
+        $this->totalSum = $this->quantity * $this->priceRUR;
     }
     
     public function __construct($params) {
         parent::__construct($params);
+        if ($params['title']=='Краска ролевая чёрная') {
+            $params['inkGroup'] = 2;
+        };
         $this->usageRate = getInkRollNorma::getNorma($params['inkGroup']);
     }
 }
-
 
 class Worker {
 
@@ -264,6 +272,8 @@ class HalfProduct {
     public $quantity;
     public $formsQuantity;
     public $inks;
+    public $inksTotalCost=0;
+
 
     private function calculateQuantity($type) {
         if ($type == 'preparation') {
@@ -294,9 +304,12 @@ class HalfProduct {
         foreach($this->layout->inkMap as $sideInk) {
             foreach($sideInk as $key=>$inkID) {
                 $this->inks[$key] = new Ink(array_merge(getInks::get($inkID), ['inkGroup' => $inkGroup]));
-                $this->inks[$key]->calculateQuantity($inkGroup, );
+                $this->inks[$key]->calculateQuantity($this->paper->calculateSheetSquare());
+                $this->inks[$key]->calculateTotalSum();
+                $this->inksTotalCost += $this->inks[$key]->totalSum;
             }
-        }
+        };
+        $this->inksTotalCost = $this->inksTotalCost * $this->quantity * (1 + $this->paper->rejectNorma / 100);
 
         $workersData = getWorkers::index($config);
         $suboperationsData = getSuboperations::index($config);
