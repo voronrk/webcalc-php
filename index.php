@@ -8,6 +8,7 @@ use Data\getWorkers;
 use Data\getSuboperations;
 use Data\getPaperRejectRoll;
 use Data\getInks;
+use Data\getInkRollNorma;
 use Material\Material;
 
 function debug($data) {
@@ -56,11 +57,12 @@ class Paper extends Material {
 class Ink extends Material {
 
     public function calculateQuantity() {
-        
+        $this->quantity = 5;
     }
     
     public function __construct($params) {
         parent::__construct($params);
+        $this->usageRate = getInkRollNorma::getNorma($params['inkGroup']);
     }
 }
 
@@ -290,8 +292,9 @@ class HalfProduct {
         $this->paper = new Paper($paperParams);
 
         foreach($this->layout->inkMap as $sideInk) {
-            foreach($sideInk as $inkID) {
-                $this->inks[] = new Ink(getInks::get($inkID));
+            foreach($sideInk as $key=>$inkID) {
+                $this->inks[$key] = new Ink(array_merge(getInks::get($inkID), ['inkGroup' => $inkGroup]));
+                $this->inks[$key]->calculateQuantity($inkGroup, );
             }
         }
 

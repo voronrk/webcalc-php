@@ -39,6 +39,15 @@ class getInks {
             'price' => 2.32,
             'currency' => 'EUR',
         ],
+        [
+            'id' => 5,
+            'group' => 'КРАСКА',
+            'title' => 'Краска ролевая красная (тест)',
+            'type' => 'ролевая',
+            'mainUnit' => 'кг',
+            'price' => 2.32,
+            'currency' => 'EUR',
+        ],
     ];
 
     public static function get($id) {
@@ -171,6 +180,10 @@ class getInkRollNorma {
             'norma' => 0.0000241
         ],
     ];
+
+    public static function getNorma($group) {
+        return current(array_filter(self::norma, function($item) use ($group) {return $item['group']==$group;}))['norma'];
+    }
 
     public static function index() {
         return self::norma;
