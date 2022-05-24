@@ -45,7 +45,7 @@ class getInks {
             'title' => 'Краска ролевая красная (тест)',
             'type' => 'ролевая',
             'mainUnit' => 'кг',
-            'price' => 2.32,
+            'price' => 20.32,
             'currency' => 'EUR',
         ],
     ];
@@ -62,24 +62,26 @@ class getInks {
 class getSuboperations {
     const suboperations = [
         [
+            'id' => 1,
             'type' => 'preparation',
             'title' => 'Приладка 1 формы А3 формат CityLine',
             'machine' => 'CityLine',
             'complexityIndex' => '1',
             'unit' => 'шт.',
             'standardHoursPerPiece' => 0.067,
-            'wastePersent' => '',
-            'wasteNumber' => '',
+            'materials' => [],
+            'workers' => [1,2,3,4],
         ],
         [
+            'id' => 2,
             'type' => 'passing',
             'title' => 'Печать А3 с 2-х рулонов цветная CityLine',
             'machine' => 'CityLine',
             'complexityIndex' => '1',
             'unit' => 'листопрогон',
             'standardHoursPerPiece' => 0.000056,
-            'wastePersent' => '',
-            'wasteNumber' => '',
+            'materials' => [],
+            'workers' => [1,2,3,4],
         ],
     ];
 
@@ -106,18 +108,22 @@ class getJobTariffs {
 class getWorkers {
     const workers = [
         [
+            'id' => 1,
             'position' => 'Печатник CitiLine 5 разряд',
             'grade' => '5',
         ],
         [
+            'id' => 2,
             'position' => 'Печатник CitiLine 4 разряд',
             'grade' => '4',
         ],
         [
+            'id' => 3,
             'position' => 'Печатник CitiLine 3 разряд',
             'grade' => '3',
         ],
         [
+            'id' => 4,
             'position' => 'Печатник CitiLine 3 разряд',
             'grade' => '3',
         ],
@@ -271,3 +277,53 @@ class getPaperRejectRoll {
         return self::$rejectNorma;
     }
 };
+
+class getPaper {
+
+    const papers = [
+        [
+            'id' => 1,
+            'group' => 'БУМАГА',
+            'title' => 'Газетная',
+            'type' => 'газетная',
+            'mainUnit' => 'кг',
+            'price' => 32.25,
+            'usageRate' => 1,
+            'basicWeight' => 42,
+            'currency' => 'RUR',
+            'rollWidth' => 76
+        ]
+    ];
+
+    public static function get($id) {
+        return current(array_filter(self::papers, function($item) use ($id) {return $item['id']==$id;}));
+    }
+
+    public static function index() {
+        return self::paper;
+    }
+}
+
+class getForms {
+
+    const forms = [
+        [
+            'id' => 1,
+            'group' => 'ФОРМЫ',
+            'title' => '608х844 CityLine СТР "Kaizen"',
+            'type' => 'CityLine',
+            'mainUnit' => 'шт.',
+            'price' => 1.83,
+            'usageRate' => 1,
+            'currency' => 'USD',
+        ]
+    ];
+
+    public static function get($id) {
+        return current(array_filter(self::forms, function($item) use ($id) {return $item['id']==$id;}));
+    }
+
+    public static function index() {
+        return self::forms;
+    }
+}

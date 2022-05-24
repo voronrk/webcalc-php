@@ -23,7 +23,8 @@ class Material {
     public $currency;       // Валюта цены
 
     public $quantity;       // Количество
-    public $priceRUR;       // Цена (руб.)ж
+    public $priceRUR;       // Цена (руб.)
+    public $totalCost;      // Сумма (руб.)
 
     public function getCurrencyCourse($currencyName) {
         $currencyCourse = [
@@ -42,16 +43,12 @@ class Material {
         return $this->price * $this->getCurrencyCourse($this->currency);
     }
 
-    public function __construct($params)
-    {
-        $this->group = $params['group'];
-        $this->title = $params['title'];
-        $this->type = $params['type'];
-        $this->mainUnit = $params['mainUnit'];
-        $this->currency = $params['currency'];
-        $this->price = $params['price'];
+    public function __construct($params) {
+        foreach($params as $key=>$value) {
+            $this->$key = $value;
+        };
+
         $this->priceRUR = $this->calculatePriceRUR();
-        $this->usageRate = $params['usageRate'];
     }
 }
 

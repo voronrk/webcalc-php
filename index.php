@@ -9,6 +9,8 @@ use Data\getSuboperations;
 use Data\getPaperRejectRoll;
 use Data\getInks;
 use Data\getInkRollNorma;
+use Data\getPaper;
+use Data\getForms;
 use Material\Material;
 
 function debug($data) {
@@ -48,6 +50,7 @@ class Paper extends Material {
         $this->basicWeight = $params['basicWeight'];
         $this->rollsQuantity = $params['rollsQuantity'];
         $this->quantityOfItems = $params['quantityOfItem'];
+
         $this->rejectNorma = getPaperRejectRoll::index($this->rollsQuantity, $this->quantityOfItems, $params['layoutInkMap']);
         $this->quantity = $this->calculateTotalPaperWeight();
         $this->totalCost = $this->calculateTotalCost();
@@ -56,16 +59,12 @@ class Paper extends Material {
 
 class Ink extends Material {
 
-    public $totalSum;
+    public $totalCost;
 
     public function calculateQuantity($S) {
         $this->quantity = $S * $this->usageRate;
     }
 
-    public function calculateTotalSum() {
-        $this->totalSum = $this->quantity * $this->priceRUR;
-    }
-    
     public function __construct($params) {
         parent::__construct($params);
         if ($params['title']=='Краска ролевая чёрная') {
@@ -90,6 +89,12 @@ class Worker {
 
 }
 
+class Form extends Material {
+    public function __construct($params) {
+        parent::__construct($params);
+    }
+}
+
 class Suboperation {
 
     public $title;                  // Название
@@ -106,6 +111,8 @@ class Suboperation {
     public $elapsedTime;            // Затраченное время
 
     public $totalJobCost;           // ФОТ с налогами и коэффициентами
+
+    public $jobTariffs;            // Тарифы по разрядам
 
     private function CalculateElapsedTime() {
         $this->elapsedTime = $this->quantity * $this->standardHoursPerPiece;
@@ -138,29 +145,6 @@ class Suboperation {
         $this->CalculateElapsedTime();
         $this->CalculateTotalJobCost();
     }
-}
-
-class HalfProduct_DEPRECATED {
-
-    public $suboperations;
-    public $materials;
-
-    public $quantity;
-
-    public function __construct($quantity=0, $suboperations = [], $materials = [])
-    {
-        $this->suboperations = $suboperations;
-
-        foreach($this->suboperations as $suboperation) {
-            $this->quantity += $suboperation->quantity;
-        }
-    }
-
-    public function render()
-    {
-        
-    }
-
 }
 
 class Layout {
@@ -274,6 +258,9 @@ class HalfProduct {
     public $inks;
     public $inksTotalCost=0;
 
+    public $formsTotalCost;
+
+    public $totalCost=0;
 
     private function calculateQuantity($type) {
         if ($type == 'preparation') {
@@ -285,7 +272,7 @@ class HalfProduct {
         return false;
     }
 
-    public function __construct($params, $paperParams, $inkGroup) {
+    public function __construct($params) {
 
         $this->sizeOfPage = $params['sizeOfPage'];
         $this->pagesQuantity = count($params['inksOnPages']);
@@ -294,19 +281,21 @@ class HalfProduct {
         $this->layout = new Layout($this->pagesQuantity, $this->sizeOfPage, $params['inksOnPages']);
         $this->formsQuantity = $this->layout->formsQuantity;
 
-        $paperParams = array_merge($paperParams, [
+        $params['paperParams'] = array_merge($params['paperParams'], [
             'rollsQuantity' => $this->layout->rollsQuantity,
             'quantityOfItem' => $this->quantity,
             'layoutInkMap' => $this->layout->layoutInkMap
         ]);
-        $this->paper = new Paper($paperParams);
+        $this->paper = new Paper($params['paperParams']);
+
+        $this->totalCost += $this->paper->totalCost;
 
         foreach($this->layout->inkMap as $sideInk) {
             foreach($sideInk as $key=>$inkID) {
-                $this->inks[$key] = new Ink(array_merge(getInks::get($inkID), ['inkGroup' => $inkGroup]));
+                $this->inks[$key] = new Ink(array_merge(getInks::get($inkID), ['inkGroup' => $params['inkGroup']]));
                 $this->inks[$key]->calculateQuantity($this->paper->calculateSheetSquare());
-                $this->inks[$key]->calculateTotalSum();
-                $this->inksTotalCost += $this->inks[$key]->totalSum;
+                $this->inks[$key]->calculateTotalCost();
+                $this->inksTotalCost += $this->inks[$key]->calculateTotalCost();
             }
         };
         $this->inksTotalCost = $this->inksTotalCost * $this->quantity * (1 + $this->paper->rejectNorma / 100);
@@ -317,67 +306,18 @@ class HalfProduct {
         foreach($suboperationsData as $key=>$suboperationData) {
             $this->suboperations[]=new Suboperation($suboperationData, $workersData, getJobTariffs::index(), $this->calculateQuantity($suboperationData['type']));
         }
+
+        $form = new Form(getForms::get(1));
+        $this->formsTotalCost = $this->formsQuantity * $form->priceRUR;
     }
 }
 
-// const QUANTITY = 25000;
-const QUANTITY = 2283;
 // const QUANTITY = 2500;
+
+const QUANTITY = 2283;
 const SIZE = 'A3';
-const ROLL_WIDTH = 76;
-
-const PAPER_DATA = [
-    'group' => 'БУМАГА',
-    'title' => 'Газетная',
-    'type' => 'газетная',
-    'mainUnit' => 'кг',
-    'price' => 32.25,
-    'usageRate' => 1,
-    'basicWeight' => 42,
-    'currency' => 'RUR',
-    'rollWidth' => ROLL_WIDTH
-];
-
-const INK_DATA = [
-    [
-        'group' => 'КРАСКА',
-        'title' => 'Краска ролевая чёрная',
-        'type' => 'ролевая',
-        'mainUnit' => 'кг',
-        'price' => 1.62,
-        'currency' => 'EUR',
-    ],
-    [
-        'group' => 'КРАСКА',
-        'title' => 'Краска ролевая голубая',
-        'type' => 'ролевая',
-        'mainUnit' => 'кг',
-        'price' => 2.32,
-        'currency' => 'EUR',
-    ],
-    [
-        'group' => 'КРАСКА',
-        'title' => 'Краска ролевая желтая',
-        'type' => 'ролевая',
-        'mainUnit' => 'кг',
-        'price' => 2.32,
-        'currency' => 'EUR',
-    ],
-    [
-        'group' => 'КРАСКА',
-        'title' => 'Краска ролевая пурпурная',
-        'type' => 'ролевая',
-        'mainUnit' => 'кг',
-        'price' => 2.32,
-        'currency' => 'EUR',
-    ],
-];
 
 $configName = "Newspaper Block";
-// $inkOnPages = [1,1,1,1,1,1,1,1];                                        // 8
-// $inksOnPages = [4,1,1,1,1,1,1,4,4,1,1,1,1,1,1,4];                     // 16
-// $inkOnPages = [4,1,1,1,1,1,1,4,4,1,1,1,1,1,1,4,1,1,1,1,1,1,1,1];     // 24
-// $inkOnPages = [4,1,1,1,1,1,1,1,1,1,1,4];                             // 12
 
 $inksOnPages = [
     [1,2,3,4],
@@ -397,35 +337,23 @@ $inksOnPages = [
     [1],
     [1,2,3,4],
 ];
-// $inksOnPages = [
-//     [1,2,3,4],
-//     [1],
-//     [1],
-//     [1],
-//     [1],
-//     [1],
-//     [1],
-//     [1,2,3,4],
-//     [1,2,3,4],
-//     [1],
-//     [1],
-//     [1],
-//     [1],
-//     [1],
-//     [1],
-//     [1,2,3,4],
-// ];
 
 $halfProductParams = [
     'configName' => $configName,
     'quantity' => QUANTITY,
     'sizeOfPage' => SIZE,
     'inksOnPages' => $inksOnPages,
+    'inkGroup' => 4,
+    'paperParams' => getPaper::get(1),
 ];
 
-$inkGroup = 4;
+$newspaperBlock = new HalfProduct($halfProductParams);
 
-$newspaperBlock = new HalfProduct($halfProductParams, PAPER_DATA, $inkGroup);
+echo "Бумага - " . round($newspaperBlock->paper->totalCost,2) . " руб.<br>";
+echo "Краска - " . round($newspaperBlock->inksTotalCost,2) . " руб.<br>";
+echo "Формы - " . round($newspaperBlock->formsTotalCost,2) . " руб.<br>";
+echo "Трудозатраты - " . (round($newspaperBlock->suboperations[0]->totalJobCost,2) + round($newspaperBlock->suboperations[1]->totalJobCost,2)) . " руб.<br>";
+
 debug($newspaperBlock);
 
 ?>
