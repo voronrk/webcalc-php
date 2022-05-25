@@ -63,6 +63,7 @@ class getSuboperations {
     const suboperations = [
         [
             'id' => 1,
+            'config' => 'Newspaper Block',
             'type' => 'preparation',
             'title' => 'Приладка 1 формы А3 формат CityLine',
             'machine' => 'CityLine',
@@ -74,6 +75,7 @@ class getSuboperations {
         ],
         [
             'id' => 2,
+            'config' => 'Newspaper Block',
             'type' => 'passing',
             'title' => 'Печать А3 с 2-х рулонов цветная CityLine',
             'machine' => 'CityLine',
@@ -84,6 +86,10 @@ class getSuboperations {
             'workerIDs' => [1,2,3,4],
         ],
     ];
+
+    public static function get($config) {
+        return array_filter(self::suboperations, function($item) use ($config) {return $item['config'] == $config;});
+    }
 
     public static function index() {
         return self::suboperations;
