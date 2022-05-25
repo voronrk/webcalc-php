@@ -70,7 +70,7 @@ class getSuboperations {
             'unit' => 'шт.',
             'standardHoursPerPiece' => 0.067,
             'materials' => [],
-            'workers' => [1,2,3,4],
+            'workerIDs' => [1,2,3,4],
         ],
         [
             'id' => 2,
@@ -81,7 +81,7 @@ class getSuboperations {
             'unit' => 'листопрогон',
             'standardHoursPerPiece' => 0.000056,
             'materials' => [],
-            'workers' => [1,2,3,4],
+            'workerIDs' => [1,2,3,4],
         ],
     ];
 
@@ -92,13 +92,35 @@ class getSuboperations {
 
 class getJobTariffs {
     const jobTariffs = [
-        '1' => 47.575, 
-        '2' => 63.25, 
-        '3' => 75.9, 
-        '4' => 95.15, 
-        '5' => 113.85, 
-        '6' => 126.5
+        [
+            'grade' => 1,
+            'tariff' => 47.575, 
+        ],
+        [
+            'grade' => 2,
+            'tariff' => 63.25, 
+        ],
+        [
+            'grade' => 3,
+            'tariff' => 75.9, 
+        ],
+        [
+            'grade' => 4,
+            'tariff' => 95.15, 
+        ],
+        [
+            'grade' => 5,
+            'tariff' => 113.85, 
+        ],
+        [
+            'grade' => 6,
+            'tariff' => 126.5
+        ],
     ];
+
+    public static function get($grade) {
+        return current(array_filter(self::jobTariffs, function($item) use ($grade) {return $item['grade'] == $grade;}))['tariff'];
+    }
 
     public static function index() {
         return self::jobTariffs;
@@ -128,6 +150,10 @@ class getWorkers {
             'grade' => '3',
         ],
     ];
+
+    public static function get($id) {
+        return current(array_filter(self::workers, function($item) use ($id) {return $item['id'] == $id;}));
+    }
 
     public static function index() {
         return self::workers;

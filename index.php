@@ -2,9 +2,10 @@
 
 include('data.php');
 include ('Material.php');
+include ('Suboperation.php');
+include ('Layout.php');
 
-use Data\getJobTariffs;
-use Data\getWorkers;
+
 use Data\getSuboperations;
 use Data\getPaperRejectRoll;
 use Data\getInks;
@@ -12,6 +13,9 @@ use Data\getInkRollNorma;
 use Data\getPaper;
 use Data\getForms;
 use Material\Material;
+use Suboperation\Suboperation;
+use Layout\Layout;
+
 
 function debug($data) {
     echo "<pre>";
@@ -46,10 +50,6 @@ class Paper extends Material {
 
     public function __construct($params) {
         parent::__construct($params);
-        $this->rollWidth = $params['rollWidth'];
-        $this->basicWeight = $params['basicWeight'];
-        $this->rollsQuantity = $params['rollsQuantity'];
-        $this->quantityOfItems = $params['quantityOfItem'];
 
         $this->rejectNorma = getPaperRejectRoll::index($this->rollsQuantity, $this->quantityOfItems, $params['layoutInkMap']);
         $this->quantity = $this->calculateTotalPaperWeight();
@@ -58,8 +58,6 @@ class Paper extends Material {
 }
 
 class Ink extends Material {
-
-    public $totalCost;
 
     public function calculateQuantity($S) {
         $this->quantity = $S * $this->usageRate;
@@ -74,177 +72,9 @@ class Ink extends Material {
     }
 }
 
-class Worker {
-
-    public $name;       // ФИО
-    public $position;   // Должность
-    public $grade;      // Разряд
-
-    public function __construct($data)
-    {
-        $this->grade = $data['grade'];
-        $this->position = $data['position'];
-        $this->name = isset($data['name']) ? $data['name'] : '';
-    }
-
-}
-
 class Form extends Material {
     public function __construct($params) {
         parent::__construct($params);
-    }
-}
-
-class Suboperation {
-
-    public $title;                  // Название
-    public $machine;                // Машина
-    public $complexityIndex;        // Группа сложности
-    public $unit;                   // Единица измерения
-    public $standardHoursPerPiece;  // Норма времени (ед./ч.)
-    public $wastePersent;           // % техотходов
-    public $wasteNumber;            // количество техотходов
-    public $workers;                // работники
-
-    public $quantity;               // Количество
-
-    public $elapsedTime;            // Затраченное время
-
-    public $totalJobCost;           // ФОТ с налогами и коэффициентами
-
-    public $jobTariffs;            // Тарифы по разрядам
-
-    private function CalculateElapsedTime() {
-        $this->elapsedTime = $this->quantity * $this->standardHoursPerPiece;
-    }
-
-    private function CalculateTotalJobCost() {
-        $this->totalJobCost = 0;
-        foreach($this->workers as $worker) {
-            $this->totalJobCost += $this->jobTariffs[$worker->grade] * $this->elapsedTime * 3;
-        }
-    }
-
-    public function __construct($data, $workersData, $jobTariffs, $quantity=0)
-    {
-        $this->title = $data['title'];
-        $this->machine = $data['machine'];
-        $this->complexityIndex = $data['complexityIndex'];
-        $this->unit = $data['unit'];
-        $this->standardHoursPerPiece = $data['standardHoursPerPiece'];
-        $this->wastePersent = $data['wastePersent'];
-        $this->wasteNumber = $data['wasteNumber'];
-
-        $this->jobTariffs = $jobTariffs;
-
-        $this->quantity = $quantity;
-
-        foreach($workersData as $worker) {
-            $this->workers[]=new Worker($worker);
-        };
-        $this->CalculateElapsedTime();
-        $this->CalculateTotalJobCost();
-    }
-}
-
-class Layout {
-
-    public $printSides;
-    public $rollsQuantity;
-    public $pagesPerSide;
-    public $pagesPerSheet;
-    public $pagesQuantity;
-    public $inksOnPages;
-    public $inkMap;
-    public $layoutInkMap;
-    public $formsQuantity;
-     
-
-    const PAGES_PER_SIDE = [
-        'A4' => 8,
-        'A3' => 4,
-        'A2' => 2
-    ];
-
-    const PAGES_PER_SHEET = [
-        'A4' => 16,
-        'A3' => 8,
-        'A2' => 4
-    ];
-
-    private function calculateRollsQuantity() {
-        return $this->pagesQuantity / $this->pagesPerSheet;
-    }
-
-    private function calculatePrintSides() {
-        return ceil($this->rollsQuantity) * 2;
-    }
-
-    private function calculateBlockSize() {
-        return $this->pagesQuantity / ($this->pagesPerSide/2);
-    }
-
-    private function getCurrentBlockNumber($pageNumber) {
-        return ceil($pageNumber / $this->calculateBlockSize());
-    }
-
-    private function calculateNumberOfPageInBlock($pageNumber) {
-        return $pageNumber - ($this->calculateBlockSize() * ($this->getCurrentBlockNumber($pageNumber)-1));
-    }
-
-    private function getSideOfPage($pageNumber) {
-        return $pageNumber <= 2*floor($this->rollsQuantity) ? $pageNumber : $this->calculateBlockSize() - $pageNumber + 1;
-    }
-
-    private function generateLayoutInkMap() {
-        $inks = ['','','1+1','2+1','2+2','4+1','4+2','','4+4'];
-        $sumOfInks = 0;
-        for ($i=1;$i<count($this->inkMap);$i=$i+2) {
-            $temp = count($this->inkMap[$i])+count($this->inkMap[$i+1]);
-            if ($sumOfInks<$temp) {
-                $sumOfInks = $temp;
-            };
-        };
-        $this->layoutInkMap = $inks[$sumOfInks];
-    }
-
-    private function addInkToSide($inkID, $side) {
-        if ($this->inkMap[$side]=='') {
-            $this->inkMap[$side] = [];
-        };
-        if (!in_array($inkID, $this->inkMap[$side])) {
-            $this->inkMap[$side] = array_merge($this->inkMap[$side], [$inkID]);
-        };
-    }
-
-    private function generateInkMap() {
-        foreach($this->inksOnPages as $key=>$inks) {
-            $page = $key+1;
-            $side = $this->getSideOfPage($this->calculateNumberOfPageInBlock($page));
-            foreach($inks as $inkID) {
-                $this->addInkToSide($inkID, $side);
-            };            
-        }
-        $this->generateLayoutInkMap();
-    }
-
-    private function calculateFormQuantity() {
-        $formsQuantity = 0;
-        foreach($this->inkMap as $quantity) {
-            $formsQuantity += count($quantity);
-        };
-        return $formsQuantity;
-    }
-
-    public function __construct($pagesQuantity, $sizeOfPage, $inksOnPages) {
-        $this->pagesQuantity = $pagesQuantity; 
-        $this->inksOnPages = $inksOnPages;
-        $this->pagesPerSide = self::PAGES_PER_SIDE[$sizeOfPage];
-        $this->pagesPerSheet = self::PAGES_PER_SHEET[$sizeOfPage];
-        $this->rollsQuantity = $this->calculateRollsQuantity();
-        $this->printSides = $this->calculatePrintSides();
-        $this->generateInkMap();
-        $this->formsQuantity = $this->calculateFormQuantity();
     }
 }
 
@@ -283,7 +113,7 @@ class HalfProduct {
 
         $params['paperParams'] = array_merge($params['paperParams'], [
             'rollsQuantity' => $this->layout->rollsQuantity,
-            'quantityOfItem' => $this->quantity,
+            'quantityOfItems' => $this->quantity,
             'layoutInkMap' => $this->layout->layoutInkMap
         ]);
         $this->paper = new Paper($params['paperParams']);
@@ -300,11 +130,10 @@ class HalfProduct {
         };
         $this->inksTotalCost = $this->inksTotalCost * $this->quantity * (1 + $this->paper->rejectNorma / 100);
 
-        $workersData = getWorkers::index($config);
         $suboperationsData = getSuboperations::index($config);
 
         foreach($suboperationsData as $key=>$suboperationData) {
-            $this->suboperations[]=new Suboperation($suboperationData, $workersData, getJobTariffs::index(), $this->calculateQuantity($suboperationData['type']));
+            $this->suboperations[]=new Suboperation($suboperationData, $this->calculateQuantity($suboperationData['type']));
         }
 
         $form = new Form(getForms::get(1));
