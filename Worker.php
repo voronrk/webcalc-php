@@ -15,6 +15,6 @@ class Worker {
         $this->grade = $data['grade'];
         $this->position = $data['position'];
         $this->name = isset($data['name']) ? $data['name'] : '';
-        $this->jobTariff = getJobTariffs::get($this->grade);
+        $this->jobTariff = getJobTariffs::getByKey('grade', $this->grade)['tariff'];
     }
 }

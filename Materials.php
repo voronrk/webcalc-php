@@ -53,7 +53,7 @@ class Ink extends Material {
         if ($params['title']=='Краска ролевая чёрная') {
             $params['inkGroup'] = 2;
         };
-        $this->usageRate = getInkRollNorma::getNorma($params['inkGroup']);
+        $this->usageRate = getInkRollNorma::getByKey('group', $params['inkGroup'])['norma'];
     }
 }
 

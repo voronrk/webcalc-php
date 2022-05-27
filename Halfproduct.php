@@ -46,12 +46,12 @@ class HalfProduct {
         $this->sizeOfPage = $params['sizeOfPage'];
         $this->pagesQuantity = count($params['inksOnPages']);
         $this->quantity = $params['quantity'];
-        $suboperationsData = getSuboperations::get($params['configName']);
+        $suboperationsData = getSuboperations::getAllByKey('configName', $params['configName']);
 
         $this->layout = new Layout($this->pagesQuantity, $this->sizeOfPage, $params['inksOnPages']);
         $this->formsQuantity = $this->layout->formsQuantity;
 
-        $params['paperData'] = array_merge(getPaper::get(1), [
+        $params['paperData'] = array_merge(getPaper::getById(1), [
             'rollsQuantity' => $this->layout->rollsQuantity,
             'quantityOfItems' => $this->quantity,
             'layoutInkMap' => $this->layout->layoutInkMap
@@ -62,7 +62,7 @@ class HalfProduct {
 
         foreach($this->layout->inkMap as $sideInks) {
             foreach($sideInks as $key=>$inkID) {
-                $this->inks[$key] = new Ink(array_merge(getInks::get($inkID), ['inkGroup' => $params['inkGroup']]));
+                $this->inks[$key] = new Ink(array_merge(getInks::getById($inkID), ['inkGroup' => $params['inkGroup']]));
                 $this->inks[$key]->calculateQuantity($this->paper->calculateSheetSquare());
                 $this->inks[$key]->calculateTotalCost();
                 $this->inksTotalCost += $this->inks[$key]->calculateTotalCost();
@@ -77,7 +77,7 @@ class HalfProduct {
             $this->totalCost += $this->suboperations[$key]->totalJobCost;
         }
 
-        $form = new Form(getForms::get(1));
+        $form = new Form(getForms::getById(1));
         $this->formsTotalCost = $this->formsQuantity * $form->priceRUR;
 
         $this->totalCost += $this->formsTotalCost;

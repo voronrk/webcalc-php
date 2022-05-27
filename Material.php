@@ -1,7 +1,7 @@
 <?php
 namespace Material;
 
-class Material {
+abstract class Material {
     /**
      * params   Массив параметров
      * 
@@ -26,7 +26,7 @@ class Material {
     public $priceRUR;       // Цена (руб.)
     public $totalCost;      // Сумма (руб.)
 
-    public function getCurrencyCourse($currencyName) {
+    private function getCurrencyCourse($currencyName) {
         $currencyCourse = [
             'RUR' => 1,
             'USD' => 120,
@@ -39,7 +39,7 @@ class Material {
         return $this->priceRUR * $this->quantity;
     }
 
-    public function calculatePriceRUR() {
+    private function calculatePriceRUR() {
         return $this->price * $this->getCurrencyCourse($this->currency);
     }
 

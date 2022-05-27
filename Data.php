@@ -1,8 +1,44 @@
 <?php
 namespace Data;
 
-class getInks {
-    const inks = [
+function debug($data) {
+    echo "<pre>";
+    print_r($data);
+    echo "</pre>";
+};
+
+abstract class getData {
+
+    public static $data = [];
+
+    public static function getById($id) 
+    {
+        return static::getByKey('id', $id);
+    }
+
+    public static function getAllById($id) 
+    {
+        return static::getAllByKey('id', $id);
+    }
+
+    public static function getByKey($key, $value) 
+    {
+        return current(array_filter(static::$data, function($item) use ($key, $value) {return $item[$key]==$value;}));
+    }
+
+    public static function getAllByKey($key, $value) 
+    {
+        return array_filter(static::$data, function($item) use ($key, $value) {return $item[$key]==$value;});
+    }
+
+    public static function getAll() 
+    {
+        return static::$data;
+    }
+}
+
+class getInks extends getData {
+    public static $data = [
         [
             'id' => 1,
             'group' => 'КРАСКА',
@@ -49,21 +85,13 @@ class getInks {
             'currency' => 'EUR',
         ],
     ];
-
-    public static function get($id) {
-        return current(array_filter(self::inks, function($item) use ($id) {return $item['id']==$id;}));
-    }
-
-    public static function getAll() {
-        return self::inks;
-    }
 }
 
-class getSuboperations {
-    const suboperations = [
+class getSuboperations extends getData {
+    public static $data = [
         [
             'id' => 1,
-            'config' => 'Newspaper Block',
+            'configName' => 'Newspaper Block',
             'type' => 'preparation',
             'title' => 'Приладка 1 формы А3 формат CityLine',
             'machine' => 'CityLine',
@@ -86,18 +114,10 @@ class getSuboperations {
             'workerIDs' => [1,2,3,4],
         ],
     ];
-
-    public static function get($config) {
-        return array_filter(self::suboperations, function($item) use ($config) {return $item['config'] == $config;});
-    }
-
-    public static function index() {
-        return self::suboperations;
-    }
 };
 
-class getJobTariffs {
-    const jobTariffs = [
+class getJobTariffs extends getData {
+    public static $data = [
         [
             'grade' => 1,
             'tariff' => 47.575, 
@@ -123,18 +143,10 @@ class getJobTariffs {
             'tariff' => 126.5
         ],
     ];
-
-    public static function get($grade) {
-        return current(array_filter(self::jobTariffs, function($item) use ($grade) {return $item['grade'] == $grade;}))['tariff'];
-    }
-
-    public static function index() {
-        return self::jobTariffs;
-    }
 };
 
-class getWorkers {
-    const workers = [
+class getWorkers extends getData {
+    public static $data = [
         [
             'id' => 1,
             'position' => 'Печатник CitiLine 5 разряд',
@@ -156,19 +168,45 @@ class getWorkers {
             'grade' => '3',
         ],
     ];
-
-    public static function get($id) {
-        return current(array_filter(self::workers, function($item) use ($id) {return $item['id'] == $id;}));
-    }
-
-    public static function index() {
-        return self::workers;
-    }
 };
 
+class getPaper extends getData {
+
+    public static $data = [
+        [
+            'id' => 1,
+            'group' => 'БУМАГА',
+            'title' => 'Газетная',
+            'type' => 'газетная',
+            'mainUnit' => 'кг',
+            'price' => 32.25,
+            'usageRate' => 1,
+            'basicWeight' => 42,
+            'currency' => 'RUR',
+            'rollWidth' => 76
+        ]
+    ];
+}
+
+class getForms extends getData {
+
+    public static $data = [
+        [
+            'id' => 1,
+            'group' => 'ФОРМЫ',
+            'title' => '608х844 CityLine СТР "Kaizen"',
+            'type' => 'CityLine',
+            'mainUnit' => 'шт.',
+            'price' => 1.83,
+            'usageRate' => 1,
+            'currency' => 'USD',
+        ]
+    ];
+}
+
 // Расход краски при ролевой печати (кг/кв. м)
-class getInkRollNorma {
-    const norma = [
+class getInkRollNorma extends getData {
+    public static $data = [
         [
             'group' => 1,
             'typeOfPaper' => 'газетная',
@@ -218,14 +256,6 @@ class getInkRollNorma {
             'norma' => 0.000241
         ],
     ];
-
-    public static function getNorma($group) {
-        return current(array_filter(self::norma, function($item) use ($group) {return $item['group']==$group;}))['norma'];
-    }
-
-    public static function index() {
-        return self::norma;
-    }
 };
 
 class getPaperRejectRoll {
@@ -310,52 +340,3 @@ class getPaperRejectRoll {
     }
 };
 
-class getPaper {
-
-    const papers = [
-        [
-            'id' => 1,
-            'group' => 'БУМАГА',
-            'title' => 'Газетная',
-            'type' => 'газетная',
-            'mainUnit' => 'кг',
-            'price' => 32.25,
-            'usageRate' => 1,
-            'basicWeight' => 42,
-            'currency' => 'RUR',
-            'rollWidth' => 76
-        ]
-    ];
-
-    public static function get($id) {
-        return current(array_filter(self::papers, function($item) use ($id) {return $item['id']==$id;}));
-    }
-
-    public static function index() {
-        return self::paper;
-    }
-}
-
-class getForms {
-
-    const forms = [
-        [
-            'id' => 1,
-            'group' => 'ФОРМЫ',
-            'title' => '608х844 CityLine СТР "Kaizen"',
-            'type' => 'CityLine',
-            'mainUnit' => 'шт.',
-            'price' => 1.83,
-            'usageRate' => 1,
-            'currency' => 'USD',
-        ]
-    ];
-
-    public static function get($id) {
-        return current(array_filter(self::forms, function($item) use ($id) {return $item['id']==$id;}));
-    }
-
-    public static function index() {
-        return self::forms;
-    }
-}

@@ -46,7 +46,7 @@ class Suboperation {
         $this->quantity = $quantity;
 
         foreach($this->workerIDs as $worker) {
-            $this->workers[]=new Worker(getWorkers::get($worker));
+            $this->workers[]=new Worker(getWorkers::getById($worker));
         };
 
         $this->CalculateElapsedTime();
