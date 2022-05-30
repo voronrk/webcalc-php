@@ -98,6 +98,7 @@ class getSuboperations extends getData {
             'complexityIndex' => '1',
             'unit' => 'шт.',
             'standardHoursPerPiece' => 0.067,
+            'primaryMaterials' => [],
             'materials' => [],
             'workerIDs' => [1,2,3,4],
         ],
@@ -110,6 +111,7 @@ class getSuboperations extends getData {
             'complexityIndex' => '1',
             'unit' => 'листопрогон',
             'standardHoursPerPiece' => 0.000056,
+            'primaryMaterials' => [],
             'materials' => [],
             'workerIDs' => [1,2,3,4],
         ],
@@ -183,7 +185,7 @@ class getPaper extends getData {
             'usageRate' => 1,
             'basicWeight' => 42,
             'currency' => 'RUR',
-            'rollWidth' => 76
+            // 'rollWidth' => 76
         ]
     ];
 }

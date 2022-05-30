@@ -44,8 +44,8 @@ class Paper extends Material {
 
 class Ink extends Material {
 
-    public function calculateQuantity($S) {
-        $this->quantity = $S * $this->usageRate;
+    public function calculateQuantity($square) {
+        $this->quantity = $square * $this->usageRate;
     }
 
     public function __construct($params) {

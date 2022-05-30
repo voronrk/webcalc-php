@@ -23,8 +23,9 @@ class Suboperation {
 
     public $totalJobCost;           // ФОТ с налогами и коэффициентами
 
-    public $workerIDs=[];           // ID работников
-    public $materials=[];           // Материалы
+    public $primaryMaterials = [];  // основные материалы
+    public $workerIDs = [];         // ID работников
+    public $materials = [];         // Материалы
 
     private function CalculateElapsedTime() {
         $this->elapsedTime = $this->quantity * $this->standardHoursPerPiece;

@@ -54,7 +54,8 @@ class HalfProduct {
         $params['paperData'] = array_merge(getPaper::getById(1), [
             'rollsQuantity' => $this->layout->rollsQuantity,
             'quantityOfItems' => $this->quantity,
-            'layoutInkMap' => $this->layout->layoutInkMap
+            'layoutInkMap' => $this->layout->layoutInkMap,
+            'rollWidth' => $params['rollWidth'],
         ]);
         $this->paper = new Paper($params['paperData']);
 
