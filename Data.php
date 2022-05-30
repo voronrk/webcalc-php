@@ -288,7 +288,7 @@ class getPaperRejectRoll {
     const inks = ['','','1+1','2+1','2+2','4+1','4+2','4+4'];
 
     private static function calculateRejectNorma() {
-        self::$rejectNorma = self::$previousRejectNorma - (self::$previousRejectNorma - self::$nextRejectNorma) * ((self::$referenceQuantity - self::$previousQuantity)/(self::$nextQuantity - self::$previousQuantity));
+        return self::$previousRejectNorma - (self::$previousRejectNorma - self::$nextRejectNorma) * ((self::$referenceQuantity - self::$previousQuantity)/(self::$nextQuantity - self::$previousQuantity));
     }
 
     private static function parseItem($item) {
@@ -303,10 +303,9 @@ class getPaperRejectRoll {
             ];
             if (($arItem[0] == self::$referenceRolls) && (self::inks[$i] == self::$referenceInks)){
                 if ($arItem[1] == self::$referenceQuantity) {
-                    self::$rejectNorma = $arItem[$i];
                     self::$previousQuantity = $arItem[1];
                     self::$nextQuantity = $arItem[1];
-                    return;
+                    return $arItem[$i];
                 };
                 if ($arItem[1]<self::$referenceQuantity) {
                     self::$previousQuantity = $arItem[1];
@@ -315,25 +314,35 @@ class getPaperRejectRoll {
                 if ((self::$nextQuantity == 0) && ($arItem[1]>self::$referenceQuantity)) {
                     self::$nextQuantity = $arItem[1];
                     self::$nextRejectNorma = $arItem[$i];
-                    self::calculateRejectNorma();
-                    return;
+                    return self::calculateRejectNorma();
                 };
             };
         };
+        return false;
     }
 
     private static function readBase() {
         $baseFile=fopen ("PaperRejectRoll.csv", "r");
 		while (!feof($baseFile)){
 			$sItem=fgets($baseFile);
-            self::parseItem($sItem);
+            $parseItemResult = self::parseItem($sItem);
+            if ($parseItemResult) 
+            {
+                self::$rejectNorma = $parseItemResult;
+                return;
+            }
+            
 		};
 		fclose($baseFile);
     }
 
     public static function index($rolls, $quantity, $inks) {
-        self::$referenceRolls = $rolls;
-        self::$referenceQuantity = $quantity * ceil($rolls);
+        self::$referenceRolls = ceil($rolls);
+        if ($rolls>=2) {
+            self::$referenceQuantity = $quantity * floor($rolls);
+        } else {
+            self::$referenceQuantity = $quantity;
+        };        
         self::$referenceInks = $inks;
 
         self::readBase();
