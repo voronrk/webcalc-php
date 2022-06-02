@@ -1,6 +1,10 @@
 <?php
 namespace Data;
 
+require_once('Interfaces/GetData.php');
+
+use Interfaces\DataInterface;
+
 function debug($data) 
 {
     echo "<pre>";
@@ -8,38 +12,38 @@ function debug($data)
     echo "</pre>";
 };
 
-abstract class getData 
+abstract class GetData implements DataInterface
 {
 
     public static $data = [];
 
-    public static function getById($id) 
+    public static function getById(int $id): array
     {
         return static::getByKey('id', $id);
     }
 
-    public static function getAllById($id) 
+    public static function getAllById(int $id): array
     {
         return static::getAllByKey('id', $id);
     }
 
-    public static function getByKey($key, $value) 
+    public static function getByKey(string $key, string $value): array
     {
         return current(array_filter(static::$data, function($item) use ($key, $value) {return $item[$key]==$value;}));
     }
 
-    public static function getAllByKey($key, $value) 
+    public static function getAllByKey(string $key, string $value): array
     {
         return array_filter(static::$data, function($item) use ($key, $value) {return $item[$key]==$value;});
     }
 
-    public static function getAll() 
+    public static function getAll(): array
     {
         return static::$data;
     }
 }
 
-class getInks extends getData 
+class GetInks extends GetData 
 {
     public static $data = [
         [
@@ -90,7 +94,7 @@ class getInks extends getData
     ];
 }
 
-class getSuboperations extends getData 
+class GetSuboperations extends GetData 
 {
     public static $data = [
         [
@@ -122,7 +126,7 @@ class getSuboperations extends getData
     ];
 };
 
-class getJobTariffs extends getData 
+class GetJobTariffs extends GetData 
 {
     public static $data = [
         [
@@ -152,7 +156,7 @@ class getJobTariffs extends getData
     ];
 };
 
-class getWorkers extends getData 
+class GetWorkers extends GetData 
 {
     public static $data = [
         [
@@ -178,7 +182,7 @@ class getWorkers extends getData
     ];
 };
 
-class getPaper extends getData 
+class GetPaper extends GetData 
 {
 
     public static $data = [
@@ -196,7 +200,7 @@ class getPaper extends getData
     ];
 }
 
-class getForms extends getData 
+class GetForms extends GetData 
 {
 
     public static $data = [
@@ -214,7 +218,7 @@ class getForms extends getData
 }
 
 // Расход краски при ролевой печати (кг/кв. м)
-class getInkRollNorma extends getData 
+class GetInkRollNorma extends GetData 
 {
     public static $data = [
         [
@@ -268,7 +272,7 @@ class getInkRollNorma extends getData
     ];
 };
 
-class getPaperRejectRoll 
+class GetPaperRejectRoll 
 {
 /**  Нормы техотходов бумаги для ролевой печати (на тираж, включая приладку, прогоны, срыв и т.п.)
 *   CSV structure:
