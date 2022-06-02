@@ -2,10 +2,10 @@
 
 namespace HalfProduct;
 
-include ('Data.php');
-include ('Layout.php');
-include ('Materials.php');
-include ('Suboperation.php');
+require_once('Data.php');
+require_once('Layout.php');
+require_once('Materials.php');
+require_once('Suboperation.php');
 
 use Layout\Layout;
 use Data\getPaper;

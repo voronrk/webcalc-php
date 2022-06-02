@@ -2,7 +2,8 @@
 
 namespace Suboperation;
 
-include ('Worker.php');
+require_once('Worker.php');
+
 use Worker\Worker;
 use Data\getWorkers;
 

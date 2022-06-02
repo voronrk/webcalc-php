@@ -2,7 +2,7 @@
 
 namespace Material;
 
-include ('Material.php');
+require_once('Material.php');
 
 // use Material\Material;
 use Data\getPaperRejectRoll;

@@ -1,13 +1,15 @@
 <?php
 namespace Data;
 
-function debug($data) {
+function debug($data) 
+{
     echo "<pre>";
     print_r($data);
     echo "</pre>";
 };
 
-abstract class getData {
+abstract class getData 
+{
 
     public static $data = [];
 
@@ -37,7 +39,8 @@ abstract class getData {
     }
 }
 
-class getInks extends getData {
+class getInks extends getData 
+{
     public static $data = [
         [
             'id' => 1,
@@ -87,7 +90,8 @@ class getInks extends getData {
     ];
 }
 
-class getSuboperations extends getData {
+class getSuboperations extends getData 
+{
     public static $data = [
         [
             'id' => 1,
@@ -118,7 +122,8 @@ class getSuboperations extends getData {
     ];
 };
 
-class getJobTariffs extends getData {
+class getJobTariffs extends getData 
+{
     public static $data = [
         [
             'grade' => 1,
@@ -147,7 +152,8 @@ class getJobTariffs extends getData {
     ];
 };
 
-class getWorkers extends getData {
+class getWorkers extends getData 
+{
     public static $data = [
         [
             'id' => 1,
@@ -172,7 +178,8 @@ class getWorkers extends getData {
     ];
 };
 
-class getPaper extends getData {
+class getPaper extends getData 
+{
 
     public static $data = [
         [
@@ -185,12 +192,12 @@ class getPaper extends getData {
             'usageRate' => 1,
             'basicWeight' => 42,
             'currency' => 'RUR',
-            // 'rollWidth' => 76
         ]
     ];
 }
 
-class getForms extends getData {
+class getForms extends getData 
+{
 
     public static $data = [
         [
@@ -207,7 +214,8 @@ class getForms extends getData {
 }
 
 // Расход краски при ролевой печати (кг/кв. м)
-class getInkRollNorma extends getData {
+class getInkRollNorma extends getData 
+{
     public static $data = [
         [
             'group' => 1,
@@ -260,7 +268,8 @@ class getInkRollNorma extends getData {
     ];
 };
 
-class getPaperRejectRoll {
+class getPaperRejectRoll 
+{
 /**  Нормы техотходов бумаги для ролевой печати (на тираж, включая приладку, прогоны, срыв и т.п.)
 *   CSV structure:
 *   0 - rolls quantity
@@ -287,11 +296,13 @@ class getPaperRejectRoll {
 
     const inks = ['','','1+1','2+1','2+2','4+1','4+2','4+4'];
 
-    private static function calculateRejectNorma() {
+    private static function calculateRejectNorma() 
+    {
         return self::$previousRejectNorma - (self::$previousRejectNorma - self::$nextRejectNorma) * ((self::$referenceQuantity - self::$previousQuantity)/(self::$nextQuantity - self::$previousQuantity));
     }
 
-    private static function parseItem($item) {
+    private static function parseItem($item) 
+    {
         $arItem = explode(';',$item);
         for ($i=2;$i<=7;$i++) {
             self::$norma[] = [
@@ -321,7 +332,8 @@ class getPaperRejectRoll {
         return false;
     }
 
-    private static function readBase() {
+    private static function readBase() 
+    {
         $baseFile=fopen ("PaperRejectRoll.csv", "r");
 		while (!feof($baseFile)){
 			$sItem=fgets($baseFile);
@@ -336,7 +348,8 @@ class getPaperRejectRoll {
 		fclose($baseFile);
     }
 
-    public static function index($rolls, $quantity, $inks) {
+    public static function index($rolls, $quantity, $inks) 
+    {
         self::$referenceRolls = ceil($rolls);
         if ($rolls>=2) {
             self::$referenceQuantity = $quantity * floor($rolls);
