@@ -9,9 +9,9 @@ include ('Suboperation.php');
 
 use Layout\Layout;
 use Data\getPaper;
-use Materials\Paper;
-use Materials\Ink;
-use Materials\Form;
+use Material\Paper;
+use Material\Ink;
+use Material\Form;
 use Data\getInks;
 use Suboperation\Suboperation;
 use Data\getForms;

@@ -1,7 +1,12 @@
 <?php
 namespace Material;
 
-abstract class Material {
+require_once('Interfaces/MaterialInterface.php');
+
+use Interfaces\MaterialInterface;
+
+abstract class Material implements MaterialInterface
+{
     /**
      * params   Массив параметров
      * 
@@ -26,7 +31,7 @@ abstract class Material {
     public $priceRUR;       // Цена (руб.)
     public $totalCost;      // Сумма (руб.)
 
-    private function getCurrencyCourse($currencyName) {
+    private function getCurrencyCourse($currencyName):float {
         $currencyCourse = [
             'RUR' => 1,
             'USD' => 120,
@@ -35,11 +40,11 @@ abstract class Material {
         return $currencyCourse[$currencyName];
     }
 
-    public function calculateTotalCost() {
+    public function calculateTotalCost():float {
         return $this->priceRUR * $this->quantity;
     }
 
-    private function calculatePriceRUR() {
+    private function calculatePriceRUR():float {
         return $this->price * $this->getCurrencyCourse($this->currency);
     }
 

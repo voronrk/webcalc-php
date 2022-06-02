@@ -1,10 +1,10 @@
 <?php
 
-namespace Materials;
+namespace Material;
 
 include ('Material.php');
 
-use Material\Material;
+// use Material\Material;
 use Data\getPaperRejectRoll;
 use Data\getInkRollNorma;
 
