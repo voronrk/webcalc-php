@@ -32,7 +32,6 @@
             <select id="default-ink">
                 <option value = 1>1</option>
                 <option value = 2>2</option>
-                <!-- <option value = 3>3</option> -->
                 <option value = 4>4</option>
             </select>
         </div>
@@ -76,11 +75,6 @@
 </div>
 
 <table class = "table is-bordered" id="result"></table>
-
-<!-- <div class="has-text-weight-bold">Форм: <span id="result-forms-quantity"><span></div>
-<div class="has-text-weight-bold">Ролей: <span id="result-rolls-quantity"><span></div>
-<div class="has-text-weight-bold">Красочность: <span id="result-layout-inks"><span></div>
-<table class = "table is-bordered" id="result-ink-map"></table> -->
 
 </body>
 </html>

@@ -18,34 +18,13 @@ function debug($data) {
 }
 
 $params=json_decode(file_get_contents('php://input'),true);
-write('incoming.log', $params);
 
-// const QUANTITY = 2283;
 $quantity = $params['quantity'];
 $size = $params['size'];
 $inksOnPages = $params['inks'];
 $rollWidth = $params['rollWidth'];
 
 $configName = "Newspaper Block";
-
-// $inksOnPages = [
-//     [1,2,3,4],
-//     [1],
-//     [1],
-//     [1],
-//     [1],
-//     [1],
-//     [1],
-//     [1,2,3,4],
-//     [1,2,3,4],
-//     [1],
-//     [1],
-//     [1],
-//     [1],
-//     [1],
-//     [1],
-//     [1,2,3,4],
-// ];
 
 $halfProductData = [
     'configName' => $configName,
@@ -63,9 +42,6 @@ $result = [
     'formQuantity' => [
         'title' => 'Количество форм',
         'value' => $newspaperBlock->formsQuantity],
-    // 'inkMap' => [
-    //     'title' => 'Красочность по спускам',
-    //     'value' => $newspaperBlock->layout->inkMap],
     'rollsQuantity' => [
         'title' => 'Количество ролей',
         'value' => $newspaperBlock->layout->rollsQuantity],
@@ -89,12 +65,6 @@ $result = [
         'value' => round($newspaperBlock->totalCost,2)],
 ];
 echo json_encode($result);
-
-// echo "Бумага - " . round($newspaperBlock->paper->totalCost,2) . " руб.<br>";
-// echo "Краска - " . round($newspaperBlock->inksTotalCost,2) . " руб.<br>";
-// echo "Формы - " . round($newspaperBlock->formsTotalCost,2) . " руб.<br>";
-// echo "Трудозатраты - " . (round($newspaperBlock->suboperations[0]->totalJobCost,2) + round($newspaperBlock->suboperations[1]->totalJobCost,2)) . " руб.<br>";
-// echo "Всего - " . (round($newspaperBlock->totalCost,2)) . " руб.<br>";
 
 write('result.log', $newspaperBlock);
 

@@ -7,7 +7,12 @@ require_once('Worker.php');
 use Worker\Worker;
 use Data\getWorkers;
 
-class Suboperation {
+class Suboperation 
+/**
+ * Класс субоперации
+ */
+
+{
 
     public $title;                  // Название
     public $machine;                // Машина
