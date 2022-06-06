@@ -2,8 +2,10 @@
 namespace Material;
 
 require_once('Interfaces/MaterialInterface.php');
+require_once('Models/Data.php');
 
 use Interfaces\MaterialInterface;
+use Data\GetCurrencyCourse;
 
 abstract class Material implements MaterialInterface
 {
@@ -31,21 +33,12 @@ abstract class Material implements MaterialInterface
     public $priceRUR;       // Цена (руб.)
     public $totalCost;      // Сумма (руб.)
 
-    private function getCurrencyCourse($currencyName):float {
-        $currencyCourse = [
-            'RUR' => 1,
-            'USD' => 120,
-            'EUR' => 130
-        ];
-        return $currencyCourse[$currencyName];
-    }
-
     public function calculateTotalCost():float {
         return $this->priceRUR * $this->quantity;
     }
 
     private function calculatePriceRUR():float {
-        return $this->price * $this->getCurrencyCourse($this->currency);
+        return $this->price * getCurrencyCourse::getByKey('title', $this->currency)['value'];
     }
 
     public function __construct($params) {

@@ -43,6 +43,24 @@ abstract class GetData implements DataInterface
     }
 }
 
+class GetCurrencyCourse extends GetData
+{
+    public static $data = [
+        [
+            'title' => 'RUR',
+            'value' => 1,
+        ],
+        [
+            'title' => 'USD',
+            'value' => 120,
+        ],
+        [
+            'title' => 'EUR',
+            'value' => 130
+        ],
+    ];
+}
+
 class GetInks extends GetData 
 {
     public static $data = [

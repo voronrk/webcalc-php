@@ -1,19 +1,19 @@
 <?php
 
-namespace HalfProduct;
+namespace MainClasses;
 
 require_once('Models/Data.php');
-require_once('Layout.php');
-require_once('Materials.php');
+require_once('Material/Layout.php');
+require_once('Material/Materials.php');
 require_once('Suboperation.php');
 
-use Layout\Layout;
+use Material\Layout;
 use Data\getPaper;
 use Material\Paper;
 use Material\Ink;
 use Material\Form;
 use Data\getInks;
-use Suboperation\Suboperation;
+use MainClasses\Suboperation;
 use Data\getForms;
 use Data\getSuboperations;
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Suboperation;
+namespace MainClasses;
 
 require_once('Worker.php');
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Layout;
+namespace Material;
 
 class Layout {
 

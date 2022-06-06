@@ -1,8 +1,8 @@
 <?php
 
-include ('Halfproduct.php');
+include ('MainClasses/Halfproduct.php');
 
-use Halfproduct\HalfProduct;
+use MainClasses\HalfProduct;
 
 
 function write($filename, $data) {

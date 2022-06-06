@@ -2,9 +2,8 @@
 
 namespace Material;
 
-require_once('Material.php');
+require_once('Material/Material.php');
 
-// use Material\Material;
 use Data\getPaperRejectRoll;
 use Data\getInkRollNorma;
 
