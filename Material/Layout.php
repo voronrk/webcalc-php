@@ -10,7 +10,7 @@ class Layout {
     public $pagesPerSheet;
     public $pagesQuantity;
     public $inksOnPages;
-    public $inkMap;
+    public $inkMap = [];
     public $layoutInkMap;
     public $formsQuantity;
      
@@ -63,8 +63,8 @@ class Layout {
         $this->layoutInkMap = $inks[$sumOfInks];
     }
 
-    private function addInkToSide($inkID, $side) {
-        if ($this->inkMap[$side]=='') {
+    private function addInkToSide(int $inkID, int $side) {
+        if (empty($this->inkMap[$side])) {
             $this->inkMap[$side] = [];
         };
         if (!in_array($inkID, $this->inkMap[$side])) {
@@ -78,7 +78,7 @@ class Layout {
             $side = $this->getSideOfPage($this->calculateNumberOfPageInBlock($page));
             foreach($inks as $inkID) {
                 $this->addInkToSide($inkID, $side);
-            };            
+            };
         }
         $this->generateLayoutInkMap();
     }
@@ -91,7 +91,7 @@ class Layout {
         return $formsQuantity;
     }
 
-    public function __construct($pagesQuantity, $sizeOfPage, $inksOnPages) {
+    public function __construct(int $pagesQuantity, string $sizeOfPage, array $inksOnPages) {
         $this->pagesQuantity = $pagesQuantity; 
         $this->inksOnPages = $inksOnPages;
         $this->pagesPerSide = self::PAGES_PER_SIDE[$sizeOfPage];

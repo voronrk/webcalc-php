@@ -24,7 +24,7 @@ $size = $params['size'];
 $inksOnPages = $params['inks'];
 $rollWidth = $params['rollWidth'];
 
-$configName = "Newspaper Block";
+$configName = "NewspaperBlock";
 
 $halfProductData = [
     'configName' => $configName,

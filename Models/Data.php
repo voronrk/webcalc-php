@@ -15,7 +15,7 @@ function debug($data)
 abstract class GetData implements DataInterface
 {
 
-    public static $data = [];
+    public static $data = array();
 
     public static function getById(int $id): array
     {
@@ -117,7 +117,7 @@ class GetSuboperations extends GetData
     public static $data = [
         [
             'id' => 1,
-            'configName' => 'Newspaper Block',
+            'configName' => 'NewspaperBlock',
             'type' => 'preparation',
             'title' => 'Приладка 1 формы А3 формат CityLine',
             'machine' => 'CityLine',
@@ -130,7 +130,7 @@ class GetSuboperations extends GetData
         ],
         [
             'id' => 2,
-            'config' => 'Newspaper Block',
+            'configName' => 'NewspaperBlock',
             'type' => 'passing',
             'title' => 'Печать А3 с 2-х рулонов цветная CityLine',
             'machine' => 'CityLine',
